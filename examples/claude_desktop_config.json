@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "itsm": {
+      "command": "mcp-itsm",
+      "env": { "MCP_SCOPES": "itsm:read", "MCP_ACTOR": "naveen", "MCP_AUDIT_LOG": "/tmp/mcp-audit.jsonl" }
+    },
+    "data": {
+      "command": "mcp-data",
+      "env": { "MCP_SCOPES": "data:read", "MCP_DUCKDB": "/path/to/warehouse.duckdb" }
+    },
+    "docs": {
+      "command": "mcp-docs",
+      "env": { "MCP_SCOPES": "docs:read", "MCP_ROLE": "employee", "MCP_KB_DIR": "/path/to/kb" }
+    }
+  }
+}

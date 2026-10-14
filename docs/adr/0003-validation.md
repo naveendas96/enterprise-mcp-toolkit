@@ -1,0 +1,2 @@
+# ADR 0003: Validate at the protocol boundary
+**Decision:** Typed signatures (`Literal` priorities and states) become JSON Schema, and the SDK rejects bad input before the tool runs. Pydantic models enforce lengths. A state machine guards ticket transitions. SQL is parsed with sqlglot (SELECT-only, allowlist, `LIMIT 500`, no file-reading functions) on a read-only DuckDB connection. Document access returns the same error for "missing" and "forbidden" so it can't be used as an existence oracle.

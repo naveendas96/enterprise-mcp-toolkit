@@ -1,0 +1,17 @@
+services:
+  itsm:
+    build: .
+    command: mcp-itsm --http
+    ports: ["8101:8000"]
+    environment: { MCP_SCOPES: "itsm:read", MCP_AUDIT_LOG: /app/logs/audit.jsonl }
+    volumes: ["./logs:/app/logs"]
+  data:
+    build: .
+    command: mcp-data --http
+    ports: ["8102:8000"]
+    environment: { MCP_SCOPES: "data:read" }
+  docs:
+    build: .
+    command: mcp-docs --http
+    ports: ["8103:8000"]
+    environment: { MCP_SCOPES: "docs:read", MCP_ROLE: employee }

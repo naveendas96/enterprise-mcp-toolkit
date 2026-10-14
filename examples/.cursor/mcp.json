@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "itsm-readwrite": {
+      "command": "python",
+      "args": ["-m", "emcp.itsm"],
+      "env": { "MCP_SCOPES": "itsm:read,itsm:write", "MCP_ACTOR": "cursor-agent" }
+    },
+    "data": { "command": "python", "args": ["-m", "emcp.data"], "env": { "MCP_SCOPES": "data:read" } }
+  }
+}
