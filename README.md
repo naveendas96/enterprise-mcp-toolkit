@@ -2,6 +2,10 @@
 
 Three **governed Model Context Protocol servers** that plug enterprise systems into Claude Desktop, Cursor or any MCP client, with the controls a security review will ask for: scoped permissions, read/write separation, input validation and an audit trail.
 
+[![Demo: real CLI run](docs/demo/demo.jpg)](docs/demo/demo.mp4)
+
+*Demo recorded from the real CLI output ([MP4](docs/demo/demo.mp4)). More projects: [thenavasoft.com/projects](https://thenavasoft.com/projects.html)*
+
 | Server | Tools | Scope(s) |
 |---|---|---|
 | `mcp-itsm` (mock ITSM) | `get_ticket`, `search_tickets` · *write:* `create_ticket`, `update_ticket_state` | `itsm:read`, `itsm:write` |
