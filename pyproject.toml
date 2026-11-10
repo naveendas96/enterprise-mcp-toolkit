@@ -1,7 +1,7 @@
 [project]
 name = "enterprise-mcp-toolkit"
 version = "0.1.0"
-description = "Three governed MCP servers (ITSM, data query, document search) with scopes, audit logging and validation."
+description = "Governed MCP servers (ITSM, data query, document search, refund) with scopes, a kill switch, a server card, audit logging and validation."
 requires-python = ">=3.11"
 license = {text = "MIT"}
 dependencies = ["mcp>=2.3,<3", "duckdb>=1.0", "sqlglot>=25", "pydantic>=2", "rank-bm25>=0.2.2"]
@@ -13,6 +13,7 @@ dev = ["pytest>=8"]
 mcp-itsm = "emcp.itsm:main"
 mcp-data = "emcp.data:main"
 mcp-docs = "emcp.docs:main"
+mcp-refund = "emcp.refund:main"
 
 [build-system]
 requires = ["setuptools>=68"]

@@ -1,6 +1,6 @@
 # Enterprise MCP Toolkit
 
-Three **governed Model Context Protocol servers** that plug enterprise systems into Claude Desktop, Cursor or any MCP client, with the controls a security review will ask for: scoped permissions, read/write separation, input validation and an audit trail.
+**Governed Model Context Protocol servers** that plug enterprise systems into Claude Desktop, Cursor or any MCP client, with the controls a security review will ask for: scoped permissions, read/write separation, input validation, an audit trail, a kill switch that stops every tool call, and a server card that lists the only servers and tools that may be called.
 
 [![Demo: real CLI run](docs/demo/demo.jpg)](docs/demo/demo.mp4)
 
@@ -11,6 +11,7 @@ Three **governed Model Context Protocol servers** that plug enterprise systems i
 | `mcp-itsm` (mock ITSM) | `get_ticket`, `search_tickets` · *write:* `create_ticket`, `update_ticket_state` | `itsm:read`, `itsm:write` |
 | `mcp-data` (DuckDB) | `list_tables`, `run_query` (SELECT-only) | `data:read` |
 | `mcp-docs` (doc search) | `search_docs`, `get_doc` (role-filtered BM25) | `docs:read` + `MCP_ROLE` |
+| `mcp-refund` (synthetic orders) | *write:* `request_refund` (eligibility, approval stub, credit — in that order) | `refund:write` |
 
 ## Problem
 MCP makes it trivial to give an AI assistant tools. The hard part in an enterprise is making sure the assistant can only do what the user is allowed to do, that nothing destructive happens by accident or through prompt injection, and that every action can be audited.
@@ -28,11 +29,19 @@ flowchart LR
   subgraph K[mcp-docs]
     K1[@audit] --> K2[BM25 + role ACL filter] --> K3[(Markdown KB)]
   end
-  I2 & D1 & K1 --> L[(audit.jsonl → SIEM)]
+  subgraph R[mcp-refund]
+    R1[@audit] --> R2[eligibility → approval stub → credit] --> R3[(Synthetic orders)]
+  end
+  I2 & D1 & K1 & R1 --> L[(audit.jsonl → SIEM)]
 ```
 
 ## Key design decisions
-[ADR 0001](docs/adr/0001-scopes-and-tool-registration.md) scopes and tool registration · [ADR 0002](docs/adr/0002-audit-log.md) audit log · [ADR 0003](docs/adr/0003-validation.md) validation · [ADR 0004](docs/adr/0004-mcp-sdk-v2.md) SDK v2
+[ADR 0001](docs/adr/0001-scopes-and-tool-registration.md) scopes and tool registration · [ADR 0002](docs/adr/0002-audit-log.md) audit log · [ADR 0003](docs/adr/0003-validation.md) validation · [ADR 0004](docs/adr/0004-mcp-sdk-v2.md) SDK v2 · [ADR 0005](docs/adr/0005-kill-switch-server-card-refund.md) kill switch, server card and refund pipeline
+
+## Kill switch and server card
+Set `MCP_KILL_SWITCH=1` or call `engage_kill_switch()` to block every tool immediately. The denial is written to the audit log as `denied_by: kill_switch`. The allowlist of servers and tools lives in [data/server-card.json](data/server-card.json) (override the path with `MCP_SERVER_CARD`). A call to a server or tool that is not on the card is denied and logged as `denied_by: server_card`.
+
+`request_refund` always runs three fixed steps in order: an eligibility check against a synthetic order catalog, a placeholder approval that records an id, and a credit. Calling those steps out of order, or skipping approval, raises an error and does not credit the order.
 
 ## Real run (`python examples/demo_client.py`, real stdio MCP sessions)
 ```
@@ -47,7 +56,7 @@ Audit record for the blocked DELETE:
 ```json
 {"server": "data", "tool": "run_query", "scope": "data:read", "actor": "demo", "args": {"sql": "DELETE FROM orders"}, "status": "error", "error": "ValueError: only a single SELECT statement is allowed", "ms": 19.6}
 ```
-**Tests: 15 passed.** They cover hidden write tools, scope denial on direct calls, illegal state transitions, protocol-level schema rejection, 5 SQL attack patterns (DDL, DML, non-allowlisted table, stacked statements, `read_csv` file access), the row cap, the docs ACL, the existence oracle, and secret redaction in the audit log.
+**Tests: 30 passed.** They cover hidden write tools, scope denial on direct calls, illegal state transitions, protocol-level schema rejection, 5 SQL attack patterns (DDL, DML, non-allowlisted table, stacked statements, `read_csv` file access), the row cap, the docs ACL, the existence oracle, secret redaction in the audit log, the kill switch, the server card, and a refund pipeline that cannot skip or reorder its three steps.
 
 ## Run it in 60 seconds
 ```bash
@@ -68,8 +77,9 @@ Optional: `npx @modelcontextprotocol/inspector mcp-itsm` for an interactive insp
 ## Limitations
 - The ITSM backend is an in-memory mock. Swap `TICKETS` for a ServiceNow or Jira client.
 - Identity comes from env vars (`MCP_ACTOR`, `MCP_ROLE`). For remote HTTP deployments, wire the SDK's OAuth `token_verifier` and derive scopes from token claims.
-- There's no human-in-the-loop confirmation inside the server. It relies on the client's tool-approval UI for write tools.
+- There's no human-in-the-loop confirmation inside the server. It relies on the client's tool-approval UI for write tools. The refund approval step is a stub that records an id; it does not wait on a person.
 - The servers don't use an LLM, so the toolkit doesn't need the pluggable LLM layer.
+- The kill switch is process-local (an environment flag or an in-memory latch). It does not reach other processes by itself.
 
 ## License
 MIT
