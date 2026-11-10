@@ -11,6 +11,10 @@
     "docs": {
       "command": "mcp-docs",
       "env": { "MCP_SCOPES": "docs:read", "MCP_ROLE": "employee", "MCP_KB_DIR": "/path/to/kb" }
+    },
+    "refund": {
+      "command": "mcp-refund",
+      "env": { "MCP_SCOPES": "refund:write", "MCP_ACTOR": "naveen", "MCP_AUDIT_LOG": "/tmp/mcp-audit.jsonl" }
     }
   }
 }

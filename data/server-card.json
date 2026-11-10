@@ -1,0 +1,10 @@
+{
+  "name": "enterprise-mcp-toolkit",
+  "version": "1",
+  "servers": {
+    "itsm": ["get_ticket", "search_tickets", "create_ticket", "update_ticket_state"],
+    "data": ["list_tables", "run_query"],
+    "docs": ["search_docs", "get_doc"],
+    "refund": ["request_refund"]
+  }
+}
