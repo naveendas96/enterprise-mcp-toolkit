@@ -78,3 +78,14 @@ def test_audit_log_redacts_and_records_denials():
     last = recs[-1]
     assert last["status"] == "error" and "PermissionDenied" in last["error"]
     assert "hunter2" not in json.dumps(last)
+
+
+def test_data_server_keeps_smaller_limit_and_lists_only_allowlisted_tables():
+    assert len(data.run_query(sql="SELECT order_id FROM orders LIMIT 3")["rows"]) == 3
+    assert set(data.list_tables()) == {"customers", "orders"}
+
+
+def test_get_ticket_unknown_id_errors():
+    assert itsm.get_ticket(ticket_id="INC0001")["id"] == "INC0001"
+    with pytest.raises(Exception):
+        itsm.get_ticket(ticket_id="INC9999")

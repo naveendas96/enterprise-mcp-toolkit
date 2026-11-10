@@ -49,12 +49,15 @@ Audit record for the blocked DELETE:
 ```
 **Tests: 15 passed.** They cover hidden write tools, scope denial on direct calls, illegal state transitions, protocol-level schema rejection, 5 SQL attack patterns (DDL, DML, non-allowlisted table, stacked statements, `read_csv` file access), the row cap, the docs ACL, the existence oracle, and secret redaction in the audit log.
 
-## Quickstart
+## Run it in 60 seconds
 ```bash
-python3.11 -m venv .venv && . .venv/bin/activate
-make install && make test && make demo
-npx @modelcontextprotocol/inspector mcp-itsm     # optional: interactive inspector
+python3 -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]"
+make test && make demo
 ```
+The demo opens three real stdio MCP sessions: it lists the tools each server exposes (write tools stay hidden under the default read-only scopes), runs a safe query, and shows a `DELETE` being rejected. No API key is required.
+
+Optional: `npx @modelcontextprotocol/inspector mcp-itsm` for an interactive inspector.
 - **Claude Desktop:** merge [examples/claude_desktop_config.json](examples/claude_desktop_config.json) into `claude_desktop_config.json`.
 - **Cursor:** copy [examples/.cursor/mcp.json](examples/.cursor/mcp.json) into your project's `.cursor/`.
 - **Docker:** `docker compose up` runs the three servers over streamable HTTP on ports 8101 to 8103.
